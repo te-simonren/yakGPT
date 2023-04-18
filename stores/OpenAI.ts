@@ -140,7 +140,8 @@ export async function streamCompletion(
   const submitMessages = truncateMessages(
     messages,
     modelInfo.maxTokens,
-    params.max_tokens
+    params.max_tokens,
+    true,
   );
 
   const submitParams = Object.fromEntries(

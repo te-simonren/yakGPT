@@ -19,9 +19,15 @@ function estimateTokens(content: string): number {
 export function truncateMessages(
   messages: Message[],
   modelMaxTokens: number,
-  userMaxTokens: number
+  userMaxTokens: number,
+  userOnly: boolean,
+  maxMessages: number = 10
 ): Message[] {
   if (messages.length <= 1) return messages;
+
+  if (userOnly) {
+    messages = messages.filter(m => m.role === "user")
+  }
 
   if (!userMaxTokens) {
     // Try to reserve some room for the model output by default
@@ -34,12 +40,6 @@ export function truncateMessages(
   const ret = [];
   let startIdx = 0;
 
-  if (messages[0].role === "system") {
-    accumulatedTokens = estimateTokens(messages[0].content);
-    ret.push(messages[0]);
-    startIdx = 1;
-  }
-
   // Try to truncate messages as is
   for (let i = messages.length - 1; i >= startIdx; i--) {
     const message = messages[i];
@@ -49,7 +49,10 @@ export function truncateMessages(
     }
     accumulatedTokens += tokens;
     // Insert at position 1
-    ret.splice(1, 0, message);
+    ret.push(message);
   }
-  return ret;
+
+  // revert and return the last maxMessages messages
+  ret.reverse();
+  return ret.slice(-maxMessages);
 }
