@@ -3,6 +3,15 @@ import https from "https";
 import { Message, truncateMessages, countTokens } from "./Message";
 import { getModelInfo } from "./Model";
 import axios from "axios";
+import {useChatStore} from "@/stores/ChatStore";
+
+const get = useChatStore.getState;
+let apiOpenaiEndpoint= get().apiOpenaiEndpoint;
+if (apiOpenaiEndpoint === undefined) {
+  apiOpenaiEndpoint = "https://api.openai.com";
+}
+
+const apiOpenaiEndpointURL = new URL(apiOpenaiEndpoint);
 
 export function assertIsError(e: any): asserts e is Error {
   if (!(e instanceof Error)) {
@@ -16,6 +25,7 @@ async function fetchFromAPI(endpoint: string, key: string) {
       headers: {
         Authorization: `Bearer ${key}`,
       },
+      insecureHTTPParser: true,
     });
     return res;
   } catch (e) {
@@ -28,7 +38,7 @@ async function fetchFromAPI(endpoint: string, key: string) {
 
 export async function testKey(key: string): Promise<boolean> {
   try {
-    const res = await fetchFromAPI("https://api.openai.com/v1/models", key);
+    const res = await fetchFromAPI(apiOpenaiEndpoint + "/v1/models", key);
     return res.status === 200;
   } catch (e) {
     if (axios.isAxiosError(e)) {
@@ -42,7 +52,7 @@ export async function testKey(key: string): Promise<boolean> {
 
 export async function fetchModels(key: string): Promise<string[]> {
   try {
-    const res = await fetchFromAPI("https://api.openai.com/v1/models", key);
+    const res = await fetchFromAPI(apiOpenaiEndpoint + "/v1/models", key);
     return res.data.data.map((model: any) => model.id);
   } catch (e) {
     return [];
@@ -58,8 +68,8 @@ export async function _streamCompletion(
 ) {
   const req = https.request(
     {
-      hostname: "api.openai.com",
-      port: 443,
+      hostname: apiOpenaiEndpointURL.hostname,
+      port: apiOpenaiEndpointURL.port,
       path: "/v1/chat/completions",
       method: "POST",
       headers: {

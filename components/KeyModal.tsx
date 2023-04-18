@@ -29,8 +29,10 @@ export function APIPanel({
   name,
   initialKey,
   initialRegion,
+  initialOpenaiEndpoint,
   setKeyFun,
   setKeyFunRegion,
+  setOpenaiEndpointFun,
   descriptionAboveInput,
   descriptionBelowInput,
   validateKey,
@@ -39,8 +41,10 @@ export function APIPanel({
   name: string;
   initialKey: string | undefined;
   initialRegion?: string | undefined;
+  initialOpenaiEndpoint?: string | undefined;
   setKeyFun: (key: string) => void;
   setKeyFunRegion?: (key: string) => void;
+  setOpenaiEndpointFun?: (key: string) => void;
   descriptionAboveInput: string;
   descriptionBelowInput: React.ReactNode;
   validateKey: (key: string, region?: string) => Promise<boolean>;
@@ -51,6 +55,7 @@ export function APIPanel({
   >("idle");
   const [apiKey, setApiKey] = useState(initialKey);
   const [region, setRegion] = useState(initialRegion);
+    const [openaiEndpoint, setOpenaiEndpoint] = useState(initialOpenaiEndpoint);
 
   const handleKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setCheckStatus("idle");
@@ -72,6 +77,9 @@ export function APIPanel({
         setKeyFun(apiKey);
         if (setKeyFunRegion && region) {
           setKeyFunRegion(region);
+        }
+        if (setOpenaiEndpointFun && openaiEndpoint) {
+          setOpenaiEndpointFun(openaiEndpoint);
         }
         setCheckStatus("success");
       } else {
@@ -112,11 +120,19 @@ export function APIPanel({
             onChange={(event) => setRegion(event.target.value)}
           />
         )}
+        {setOpenaiEndpointFun && (
+            <TextInput
+                label="OpenAI Endpoint"
+                placeholder="https://api.openai.com"
+                value={openaiEndpoint}
+                onChange={(event) => setOpenaiEndpoint(event.target.value)}
+            />
+        )}
         {descriptionBelowInput}
         <Group position="right" mt="md">
           <Button
             type="submit"
-            disabled={initialKey === apiKey && initialRegion === region}
+            disabled={initialKey === apiKey && initialRegion === region && initialOpenaiEndpoint === openaiEndpoint}
           >
             Save
           </Button>
@@ -134,12 +150,14 @@ export default function KeyModal({ close }: { close: () => void }) {
   const apiKey11Labs = useChatStore((state) => state.apiKey11Labs);
   const apiKeyAzure = useChatStore((state) => state.apiKeyAzure);
   const apiKeyAzureRegion = useChatStore((state) => state.apiKeyAzureRegion);
+  const apiOpenaiEndpoint = useChatStore((state) => state.apiOpenaiEndpoint);
 
   const setApiKeyOpenAI = (key: string) => update({ apiKey: key });
   const setApiKeyAzure = (key: string) => update({ apiKeyAzure: key });
   const setApiKeyAzureRegion = (region: string) =>
     update({ apiKeyAzureRegion: region });
   const setApiKey11Labs = (key: string) => update({ apiKey11Labs: key });
+  const setApiOpenaiEndpoint = (endpoint: string) => update({ apiOpenaiEndpoint: endpoint });
 
   return (
     <div>
@@ -164,7 +182,9 @@ export default function KeyModal({ close }: { close: () => void }) {
             <APIPanel
               name="Enter Your OpenAI API Key"
               initialKey={apiKeyOpenAI}
+              initialOpenaiEndpoint={apiOpenaiEndpoint}
               setKeyFun={setApiKeyOpenAI}
+              setOpenaiEndpointFun={setApiOpenaiEndpoint}
               descriptionAboveInput="You need an OpenAI API Key. Your API Key is stored locally on your browser and never sent anywhere else."
               descriptionBelowInput={
                 <p>
