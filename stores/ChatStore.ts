@@ -88,6 +88,7 @@ export interface ChatState {
   apiKeyAzure: string | undefined;
   apiKeyAzureRegion: string | undefined;
   apiOpenaiEndpoint: string | undefined;
+  apiOpenaiContextLimit: string | undefined;
 
   chats: Chat[];
   activeChatId: string | undefined;
@@ -130,6 +131,7 @@ export const initialState = {
   apiKeyAzure: process.env.NEXT_PUBLIC_AZURE_API_KEY || undefined,
   apiKeyAzureRegion: process.env.NEXT_PUBLIC_AZURE_REGION || undefined,
   apiOpenaiEndpoint: process.env.NEXT_PUBLIC_API_ENDPOINT || undefined,
+  apiOpenaiContextLimit: process.env.NEXT_PUBLIC_API_CONTEXT_LIMIT || undefined,
 
   chats: [],
   activeChatId: undefined,

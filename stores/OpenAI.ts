@@ -4,19 +4,39 @@ import { Message, truncateMessages, countTokens } from "./Message";
 import { getModelInfo } from "./Model";
 import axios from "axios";
 import {useChatStore} from "@/stores/ChatStore";
-
-const get = useChatStore.getState;
-let apiOpenaiEndpoint= get().apiOpenaiEndpoint;
-if (apiOpenaiEndpoint === undefined) {
-  apiOpenaiEndpoint = "https://api.openai.com";
-}
-
-const apiOpenaiEndpointURL = new URL(apiOpenaiEndpoint);
+import {func} from "prop-types";
+import {isatty} from "tty";
 
 export function assertIsError(e: any): asserts e is Error {
   if (!(e instanceof Error)) {
     throw new Error("Not an error");
   }
+}
+
+function getOpenaiEndpoint(): string {
+  const get = useChatStore.getState;
+  let apiOpenaiEndpoint= get().apiOpenaiEndpoint;
+  if (apiOpenaiEndpoint === undefined) {
+    apiOpenaiEndpoint = "https://api.openai.com";
+  }
+
+  return apiOpenaiEndpoint
+}
+
+function getOpenaiContextLimit(): number {
+  const get = useChatStore.getState;
+  const contextLimit = get().apiOpenaiContextLimit;
+
+  let numLimit = parseInt(contextLimit ?? "1");
+  if (isNaN(numLimit)) {
+    numLimit = 1;
+  }
+
+  if (numLimit < 1) {
+    numLimit = 1;
+  }
+
+  return numLimit;
 }
 
 async function fetchFromAPI(endpoint: string, key: string) {
@@ -55,7 +75,7 @@ export async function testKey(key: string): Promise<boolean> {
 
 export async function fetchModels(key: string): Promise<string[]> {
   try {
-    const res = await fetchFromAPI(apiOpenaiEndpoint + "/v1/models", key);
+    const res = await fetchFromAPI(getOpenaiEndpoint() + "/v1/models", key);
     return res.data.data.map((model: any) => model.id);
   } catch (e) {
     return [];
@@ -69,6 +89,7 @@ export async function _streamCompletion(
   callback?: ((res: IncomingMessage) => void) | undefined,
   errorCallback?: ((res: IncomingMessage, body: string) => void) | undefined
 ) {
+  const apiOpenaiEndpointURL = new URL(getOpenaiEndpoint());
   const req = https.request(
     {
       hostname: apiOpenaiEndpointURL.hostname,
@@ -142,6 +163,7 @@ export async function streamCompletion(
     modelInfo.maxTokens,
     params.max_tokens,
     true,
+    getOpenaiContextLimit(),
   );
 
   const submitParams = Object.fromEntries(

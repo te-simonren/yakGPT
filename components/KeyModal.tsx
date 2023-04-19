@@ -30,9 +30,11 @@ export function APIPanel({
   initialKey,
   initialRegion,
   initialOpenaiEndpoint,
+  initialOpenaiContextLimit,
   setKeyFun,
   setKeyFunRegion,
   setOpenaiEndpointFun,
+  setOpenaiContextLimitFun,
   descriptionAboveInput,
   descriptionBelowInput,
   validateKey,
@@ -42,9 +44,11 @@ export function APIPanel({
   initialKey: string | undefined;
   initialRegion?: string | undefined;
   initialOpenaiEndpoint?: string | undefined;
+  initialOpenaiContextLimit?: string | undefined;
   setKeyFun: (key: string) => void;
   setKeyFunRegion?: (key: string) => void;
   setOpenaiEndpointFun?: (key: string) => void;
+  setOpenaiContextLimitFun?: (key: string) => void;
   descriptionAboveInput: string;
   descriptionBelowInput: React.ReactNode;
   validateKey: (key: string, region?: string) => Promise<boolean>;
@@ -55,12 +59,17 @@ export function APIPanel({
   >("idle");
   const [apiKey, setApiKey] = useState(initialKey);
   const [region, setRegion] = useState(initialRegion);
-    const [openaiEndpoint, setOpenaiEndpoint] = useState(initialOpenaiEndpoint);
+  const [openaiEndpoint, setOpenaiEndpoint] = useState(initialOpenaiEndpoint);
+  const [openaiContextLimit, setOpenaiContextLimit] = useState(initialOpenaiContextLimit);
 
   const handleKeyChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setCheckStatus("idle");
     setApiKey(event.target.value);
   };
+
+  const handleContextLimitChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setOpenaiContextLimit(event.target.value);
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -80,6 +89,9 @@ export function APIPanel({
         }
         if (setOpenaiEndpointFun && openaiEndpoint) {
           setOpenaiEndpointFun(openaiEndpoint);
+        }
+        if (setOpenaiContextLimitFun && openaiContextLimit) {
+          setOpenaiContextLimitFun(openaiContextLimit);
         }
         setCheckStatus("success");
       } else {
@@ -128,11 +140,19 @@ export function APIPanel({
                 onChange={(event) => setOpenaiEndpoint(event.target.value)}
             />
         )}
+        {setOpenaiContextLimitFun && (
+            <TextInput
+                label="OpenAI Context Limit"
+                placeholder="1"
+                value={openaiContextLimit}
+                onChange={handleContextLimitChange}
+            />
+        )}
         {descriptionBelowInput}
         <Group position="right" mt="md">
           <Button
             type="submit"
-            disabled={initialKey === apiKey && initialRegion === region && initialOpenaiEndpoint === openaiEndpoint}
+            disabled={initialKey === apiKey && initialRegion === region && initialOpenaiEndpoint === openaiEndpoint && initialOpenaiContextLimit === openaiContextLimit}
           >
             Save
           </Button>
@@ -151,6 +171,7 @@ export default function KeyModal({ close }: { close: () => void }) {
   const apiKeyAzure = useChatStore((state) => state.apiKeyAzure);
   const apiKeyAzureRegion = useChatStore((state) => state.apiKeyAzureRegion);
   const apiOpenaiEndpoint = useChatStore((state) => state.apiOpenaiEndpoint);
+  const apiOpenaiContextLimit = useChatStore((state) => state.apiOpenaiContextLimit);
 
   const setApiKeyOpenAI = (key: string) => update({ apiKey: key });
   const setApiKeyAzure = (key: string) => update({ apiKeyAzure: key });
@@ -158,6 +179,7 @@ export default function KeyModal({ close }: { close: () => void }) {
     update({ apiKeyAzureRegion: region });
   const setApiKey11Labs = (key: string) => update({ apiKey11Labs: key });
   const setApiOpenaiEndpoint = (endpoint: string) => update({ apiOpenaiEndpoint: endpoint });
+  const setApiOpenaiContextLimit = (limit: string) => update({ apiOpenaiContextLimit: limit });
 
   return (
     <div>
@@ -183,8 +205,10 @@ export default function KeyModal({ close }: { close: () => void }) {
               name="Enter Your OpenAI API Key"
               initialKey={apiKeyOpenAI}
               initialOpenaiEndpoint={apiOpenaiEndpoint}
+              initialOpenaiContextLimit={apiOpenaiContextLimit}
               setKeyFun={setApiKeyOpenAI}
               setOpenaiEndpointFun={setApiOpenaiEndpoint}
+              setOpenaiContextLimitFun={setApiOpenaiContextLimit}
               descriptionAboveInput="You need an OpenAI API Key. Your API Key is stored locally on your browser and never sent anywhere else."
               descriptionBelowInput={
                 <p>

@@ -122,12 +122,15 @@ export default function ChatInput({ className }: { className?: string }) {
             </ActionIcon>
           )}
           <ActionIcon
-            size={32}
+            style={{
+              width: '30px',
+              height: '60px',
+            }}
             color={apiState === "loading" ? "red" : theme.primaryColor}
             onClick={() => doSubmit()}
-            sx={{ position: "absolute", bottom: "2px", right: "2px" }}
+            sx={{ position: "absolute", right: "2px" }}
           >
-            <Icon size={px("1.1rem")} stroke={1.5} />
+            <Icon size={px("1.1rem")} stroke={4} />
           </ActionIcon>
         </Group>
       }
